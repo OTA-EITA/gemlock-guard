@@ -1,0 +1,53 @@
+GIT
+  remote: https://github.com/acme/acme-payments.git
+  revision: 4f1d3c2b9a8e7f6d5c4b3a2918273645abcdef01
+  branch: main
+  specs:
+    acme-payments (0.4.0)
+
+GIT
+  remote: git://github.com/acme/legacy-tools.git
+  revision: 0123456789abcdef0123456789abcdef01234567
+  tag: v1.2.0
+  specs:
+    legacy-tools (1.2.0)
+
+PATH
+  remote: /srv/gems/acme-core
+  specs:
+    acme-core (0.1.0)
+
+GEM
+  remote: https://rubygems.org/
+  remote: http://gems.acme.internal/
+  specs:
+    nokogirl (1.0.0)
+    prism (2.0.0)
+    rails (8.1.4)
+    rspec-mokcs (3.13.0)
+    rubocop (1.92.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  acme-core!
+  acme-payments!
+  legacy-tools!
+  nokogirl
+  prism
+  rails (~> 8.1)
+  rspec-mokcs
+  rubocop
+
+CHECKSUMS
+  acme-core (0.1.0)
+  acme-payments (0.4.0)
+  legacy-tools (1.2.0)
+  nokogirl (1.0.0)
+  prism (2.0.0) sha256=0000000000000000000000000000000000000000000000000000000000000000
+  rails (8.1.4) sha256=1111111111111111111111111111111111111111111111111111111111111111
+  rubocop (1.92.1) sha256=2222222222222222222222222222222222222222222222222222222222222222
+
+BUNDLED WITH
+   2.6.9
