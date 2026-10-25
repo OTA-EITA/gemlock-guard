@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+source "http://gems.acme.internal"
+
+gem "rails", "~> 8.1"
+gem "prism"
+gem "nokogirl"
+gem "acme-payments", git: "https://github.com/acme/acme-payments.git", branch: "main"
+gem "legacy-tools", git: "git://github.com/acme/legacy-tools.git", tag: "v1.2.0"
+gem "acme-core", path: "/srv/gems/acme-core"
+
+group :development, :test do
+  gem "rspec-mokcs"
+  gem "rubocop", require: false
+end
