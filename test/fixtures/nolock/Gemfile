@@ -1,0 +1,4 @@
+source "http://rubygems.org"
+
+gem "rack"
+gem "old-tool", git: "git://example.com/old-tool.git"
