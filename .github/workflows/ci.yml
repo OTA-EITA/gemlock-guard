@@ -1,0 +1,117 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: ["3.2", "3.3", "3.4", "4.0"]
+    env:
+      # Install exactly what Gemfile.lock says, or fail.
+      BUNDLE_FROZEN: "true"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - run: bundle install --jobs 4
+      - run: bundle exec rake test
+
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_FROZEN: "true"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        with:
+          ruby-version: "4.0"
+      - run: bundle install --jobs 4
+      - run: bundle exec rubocop
+      - run: gem build gemlock-guard.gemspec
+
+  self-check:
+    # gemlock-guard checks this repository's own Gemfile.lock with the committed
+    # action, including the 7-day cooldown against the live rubygems.org.
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: ./
+        id: guard
+        with:
+          online: "true"
+          fail-on: low
+      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        if: always()
+        with:
+          sarif_file: ${{ steps.guard.outputs.sarif-file }}
+          category: gemlock-guard
+
+  runner-ruby:
+    # The action uses the runner's own Ruby: make sure the tool runs there without Bundler.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - run: ruby --version
+      - run: for f in lib/gemlock_guard.rb lib/gemlock_guard/*.rb exe/gemlock-guard; do ruby -wc "$f"; done
+      - run: exe/gemlock-guard --fail-on none test/fixtures | tee out.txt && grep -q 'GG002' out.txt
+
+  action:
+    runs-on: ubuntu-latest
+    needs: runner-ruby
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: ./
+        with:
+          path: test/fixtures/clean
+          fail-on: low
+      - uses: ./
+        id: risky
+        continue-on-error: true
+        with:
+          path: test/fixtures/risky
+      - name: the risky fixture failed
+        env:
+          OUTCOME: ${{ steps.risky.outcome }}
+        run: test "$OUTCOME" = failure
+
+  gha-guard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: OTA-EITA/gha-guard@647404df7b2c96877a2043a92e09382a1ee1dde9 # v0.1.2
+        id: guard
+        with:
+          fail-on: low
+      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        if: always()
+        with:
+          sarif_file: ${{ steps.guard.outputs.sarif-file }}
+          category: gha-guard
