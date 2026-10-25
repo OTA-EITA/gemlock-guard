@@ -1,0 +1,63 @@
+plugins:
+  - rubocop-minitest
+
+AllCops:
+  TargetRubyVersion: 3.2
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - "coverage/**/*"
+    - "vendor/**/*"
+    - "test/fixtures/**/*"
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Layout/LineLength:
+  Max: 130
+
+# The checks read best as one method per check; keep them from growing without limit.
+Metrics/MethodLength:
+  Max: 30
+  Exclude:
+    - "test/**/*"
+
+Metrics/AbcSize:
+  Max: 35
+  Exclude:
+    - "test/**/*"
+
+Metrics/ClassLength:
+  Max: 250
+  Exclude:
+    - "test/**/*"
+
+Metrics/ModuleLength:
+  Exclude:
+    - "test/**/*"
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Metrics/BlockLength:
+  Exclude:
+    - "test/**/*"
+    - "*.gemspec"
+
+Metrics/ParameterLists:
+  Max: 7
+
+Style/FormatStringToken:
+  EnforcedStyle: unannotated
+
+Naming/MethodParameterName:
+  AllowedNames: [a, b, i, j, s, v]
+
+Minitest/MultipleAssertions:
+  Max: 8
