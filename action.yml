@@ -1,0 +1,52 @@
+name: gemlock-guard
+description: Catch freshly released gems, ambiguous or plain HTTP sources and git gems on moving branches in Gemfile and Gemfile.lock
+author: OTA-EITA
+branding:
+  icon: package
+  color: red
+
+inputs:
+  path:
+    description: Space separated directories, Gemfiles or lockfiles to scan
+    default: .
+  online:
+    description: Query rubygems.org for release dates (GG006, freshly released)
+    default: "false"
+  min-age:
+    description: With online, report versions released fewer than this many days ago
+    default: "7"
+  fail-on:
+    description: Fail on findings at least this severe (high, medium, low or none)
+    default: high
+  sarif-file:
+    description: Where to write the SARIF report
+    default: gemlock-guard.sarif
+
+outputs:
+  sarif-file:
+    description: Path of the SARIF report, for github/codeql-action/upload-sarif
+    value: ${{ steps.run.outputs.sarif-file }}
+
+runs:
+  using: composite
+  steps:
+    # Uses the runner's Ruby; the tool has no dependencies to install.
+    # Inputs reach the script through the environment, never through ${{ }} in the script body.
+    - id: run
+      shell: bash
+      env:
+        GG_PATHS: ${{ inputs.path }}
+        GG_ONLINE: ${{ inputs.online }}
+        GG_MIN_AGE: ${{ inputs.min-age }}
+        GG_FAIL_ON: ${{ inputs.fail-on }}
+        GG_SARIF: ${{ inputs.sarif-file }}
+        GG_BIN: ${{ github.action_path }}/exe/gemlock-guard
+      run: |
+        read -r -a paths <<< "$GG_PATHS"
+        args=(--min-age "$GG_MIN_AGE" --fail-on "$GG_FAIL_ON" --sarif-file "$GG_SARIF" --markdown-file "$RUNNER_TEMP/gemlock-guard.md")
+        if [ "$GG_ONLINE" = "true" ]; then args+=(--online); fi
+        echo "sarif-file=$GG_SARIF" >> "$GITHUB_OUTPUT"
+        status=0
+        ruby "$GG_BIN" "${args[@]}" "${paths[@]}" || status=$?
+        if [ -f "$RUNNER_TEMP/gemlock-guard.md" ]; then cat "$RUNNER_TEMP/gemlock-guard.md" >> "$GITHUB_STEP_SUMMARY"; fi
+        exit "$status"
