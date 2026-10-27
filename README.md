@@ -43,7 +43,7 @@ Most hijacked releases are found and yanked within days. gemlock-guard looks up 
 When something is too fresh, hold it back:
 
 ```sh
-bundle update rubocop --cooldown 7   # Bundler 4.0.13+: gems named on the command line are subject to cooldown again
+bundle update rubocop --cooldown 7   # Bundler 4.0.15+: gems named on the command line are subject to cooldown again
 ```
 
 ## Checks
